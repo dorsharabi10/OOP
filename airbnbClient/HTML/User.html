@@ -1,0 +1,233 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="../JS/ajaxCalls.js"></script>
+
+    <title>דף הרשמה</title>
+    <script>
+
+        usess = [];
+        $(document).ready(function () {
+            let port = 'cgroup73';
+            server = `https://proj.ruppin.ac.il/${port}/test2/tar1/`;
+         //$("#Form").submit(submit);
+            getUsers();
+
+        })
+
+        $(document).on('submit', "#FormSign", function () {
+            let use = {
+                firstName: $("#Name").val(),
+                familyName: $("#FamilyName").val(),
+                email: $("#Email").val(),
+                password: $("#Password").val(),
+                isActive: true,
+                isAdmin: false,
+            }
+            let api = server + "api/Users"
+
+            ajaxCall("POST", api, JSON.stringify(use), postSCB, postECB);
+
+            clearVal();
+
+            swal("SignUP!", "Great Job", "success");
+
+            return false;
+
+        });
+
+        $(document).on('submit', "#FormUpd", function () {
+            let PEmail = sessionStorage.getItem('LogIn');
+            let use = {
+                firstName: $("#Name").val(),
+                familyName: $("#FamilyName").val(),
+                email: PEmail,
+                password: $("#Password").val(),
+            }
+            let api = server + `api/Users/${PEmail}`;
+
+            ajaxCall("PUT", api, JSON.stringify(use), postSCB, postECB);
+           
+            clearVal();
+
+            swal("Update!", "Great Job", "success");
+            
+
+            return false;
+
+
+        });
+
+        function clearVal() {
+            $("#Name").val("");
+            $("#FamilyName").val("")
+            $("#Email").val("")
+            $("#Password").val("")
+        }
+
+        function getUsers() {
+            api = server + "api/Users";
+            ajaxCall("GET", api, "", getSCB, getECB)
+
+        }
+
+        function getSCB(uses) {
+            usess = uses;     
+            console.log(usess);//האחרון שנירשם
+
+        }
+
+        function getECB(uses) { console.log(uses); }
+
+        function postSCB(uses) {
+            getUsers();
+        }
+
+        function postECB(uses) { console.log(uses); }
+
+        function Connection() {
+
+            let EM = $("#DEmail").val();
+            let pas = $("#DPassword").val();
+            let adminE = 'admin@gmail.com';
+            let adminP = 'admin';
+
+            if (sessionStorage.getItem('LogIn') == null) {
+                for (us of usess) {
+                    if (us.email == adminE && us.password == adminP) {
+                        sessionStorage.setItem('LogIn', us.email)
+                        swal("Admin Submitted to the server!", "Great Job", "success");
+                        window.location.href = `https://proj.ruppin.ac.il/cgroup73/test2/tar3/HTML/Admin.html`;
+                    }
+
+                    if (us.email == EM && us.password == pas) {
+                        if (us.isActive == true) {
+                            sessionStorage.setItem('LogIn', us.email)
+                            swal("Submitted to the server!", "Great Job", "success");
+                            $("#connection").hide();
+                            $("#up").show();
+                            $("#out").show();
+                            $("#order").show();
+                            return;
+                        }
+                        else {
+                            swal("This user is not active", "Login error", "error");
+                        }
+                    }
+                }
+                swal("One of the details is incorrect", "Login error", "error");
+            }
+            else {
+                swal("You must disconnect from the previous user", "Login error", "error");
+            }
+
+
+        }
+
+        function SignUp() {
+            let word = "";
+            word += `  <h2>הרשמה</h2>
+                         <form id="FormSign">
+                         <div class="form-group">
+                           <label for="FirstName">FirstName:</label>
+                    <input type="text" class="form-control" id="Name" placeholder="Enter the Name" required>
+                                 </div>
+                             <div class="form-group">
+          <label for="USERID">FamilyName:</label>
+          <input type="text" class="form-control" id="FamilyName" placeholder="Enter the Family Name" required>
+                                        </div>
+            <div class="form-group">
+          <label for="STARTDATE">Email:</label>
+                     <input type="email" class="form-control" id="Email" placeholder="Enter the Email" required />
+                                 </div>
+                            <div class="form-group">
+                            <label for="Password">Password1:</label>
+               <input type="password" class="form-control" id="Password" placeholder="Enter the Password " required />
+                                                 </div>
+                                                 <input type="submit" onabort="" value="Add users" id="submitBTN" />
+                                                                </form>`;
+            $("#ph").html(word);
+        }
+
+        function UpdateUser() {
+            let email = sessionStorage.getItem('LogIn');
+            let word = "";
+            word += `  <h2>עדכון משתמש</h2>
+                  <form id="FormUpd">
+                  <div class="form-group">
+                    <label for="FirstName">FirstName:</label>
+             <input type="text" class="form-control" id="Name" placeholder="Enter the Name" required>
+                          </div>
+                      <div class="form-group">
+                        <label for="USERID">FamilyName:</label>
+                         <input type="text" class="form-control" id="FamilyName" placeholder="Enter the Family Name" required>
+                                 </div>
+                         <div class="form-group">
+                    <label for="STARTDATE">Email:</label>
+                      <input type="email" class="form-control" id="Email" placeholder="Enter the Email" value=${email} disabled />
+                          </div>
+                     <div class="form-group">
+                     <label for="Password">Password1:</label>
+                       <input type="password" class="form-control" id="Password" placeholder="Enter the Password " required />
+                                          </div>
+                                          <input type="submit" onabort="" value="Update user" id="submitBTN" />
+                                                         </form>`;
+            $("#ph").html(word);
+        }
+
+        function LogOut() {
+            sessionStorage.clear();
+            $("#DEmail").val("");
+            $("#DPassword").val("");
+            swal("User logged out successfully", "", "success");
+            $("#up").hide();
+            $("#out").hide();
+            $("#connection").show();
+        }
+
+        function OrderVac() {
+            let email = sessionStorage.getItem('LogIn');
+            window.location.href = `https://proj.ruppin.ac.il/cgroup73/test2/tar3/HTML/flats.html?userId=` + encodeURIComponent(email);
+        }
+
+    </script>
+</head>
+<body>
+    <div>
+        <div class="container">
+            <div class="form-group">
+                <h2>התחברות</h2>
+
+                <div class="form-group">
+                    <label for="STARTDATE">Email:</label>
+                    <input type="email" class="form-control" id="DEmail" placeholder="Enter the Email" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="Password">Password1:</label>
+                    <input type="password" class="form-control" id="DPassword" placeholder="Enter the Password " required />
+                </div>
+                <input type="submit" onclick="Connection()" id="connection" value="התחבר" />
+                <input type="submit" onclick="SignUp()" id="LogOut" value="Sign-Up" />
+                <input type="submit" onclick="UpdateUser()" style="display:none" ; id="up" value="עידכון פרטים" /> 
+                <input type="button" onclick="LogOut()" style="display:none" ; id="out" value="להתנתק" />
+                <input type="button" onclick="OrderVac()" style="display:none" ; id="order" value="הזמנת חופשה" />
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="form-group" id="ph">
+          
+        </div>
+    </div>
+</body>
+
+</html>
